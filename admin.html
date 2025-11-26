@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <title>Admin  - Matahari Shop</title>
+    <title>Admin - Matahari Shop</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -158,6 +158,7 @@
 
     <script src="assets/js/script.js"></script>
     <script>
+        // Logika Admin Dashboard Anda
         if(localStorage.getItem('role') !== 'admin') window.location.href = 'login.html';
 
         // --- FUNGSI UTAMA: RENDER DASHBOARD ---
@@ -168,7 +169,7 @@
 
         // 1. LOGIKA PESANAN & STATISTIK
         function renderStatsAndOrders() {
-            const orders = loadOrders(); // Ambil data dari checkout user
+            const orders = loadOrders(); 
             const products = loadProducts();
 
             // A. Hitung Statistik
@@ -185,7 +186,6 @@
                 tbody.innerHTML = '<tr><td colspan="5" class="text-muted py-3">Belum ada pesanan masuk.</td></tr>';
             } else {
                 orders.forEach((order, index) => {
-                    // Tentukan warna badge status
                     let badgeColor = order.status === 'Lunas' ? 'bg-success' : 'bg-warning text-dark';
                     
                     tbody.innerHTML += `
@@ -224,7 +224,7 @@
             }
         }
 
-        // 2. LOGIKA PRODUK (CRUD) - Sama seperti sebelumnya
+        // 2. LOGIKA PRODUK (CRUD) - Ini adalah inti dari penambahan/pengelolaan produk
         function renderProductTable() {
             const products = loadProducts();
             const tbody = document.getElementById('adminProductTable');
@@ -281,9 +281,11 @@
 
             if (id) {
                 const index = products.findIndex(p => p.id == id);
+                // Pertahankan gambar lama jika tidak ada file baru yang diupload saat edit
                 if (document.getElementById('imgInput').files.length === 0) newProd.img = products[index].img; 
                 products[index] = newProd;
             } else {
+                // Tambah produk baru
                 products.push(newProd);
             }
             localStorage.setItem('products', JSON.stringify(products));
@@ -305,7 +307,7 @@
         }
 
         function deleteProduct(id) {
-            if(confirm('Hapus?')) {
+            if(confirm('Yakin ingin menghapus produk ini?')) {
                 let products = loadProducts().filter(p => p.id != id);
                 localStorage.setItem('products', JSON.stringify(products));
                 renderDashboard();
