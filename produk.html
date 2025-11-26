@@ -70,10 +70,13 @@
     </footer>
 
 
-    <script src="script.js"></script>
+    <script src="assets/js/script.js"></script> 
     <script>
         // Fungsionalitas JS LAMA (Tidak diubah)
+        // Pastikan file script.js berada di folder: assets/js/
+        
         function renderProducts(filter = 'all') {
+            // Membutuhkan fungsi loadProducts() dan rupiah() dari script.js
             const products = loadProducts();
             const container = document.getElementById('product-list');
             container.innerHTML = '';
