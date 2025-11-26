@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Matahari Shop </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        /* CSS Kustom Tema Matahari (Soft Gradasi Kuning) */
+        .navbar-brand { font-weight: 800; color: #ff9800 !important; }
+        .hero-section { 
+            background: linear-gradient(45deg, #ffecb3, #ffcc80); 
+            color: #333; 
+            padding: 120px 0; 
+            border-bottom-left-radius: 50px;
+            border-bottom-right-radius: 50px;
+        }
+        .hero-title { font-size: 3.5rem; font-weight: 700; color: #ff9800; }
+        .card-feature { transition: transform 0.3s ease; border: none; }
+        .card-feature:hover { transform: translateY(-10px); box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); }
+        .testimonial-bg { background-color: #fff3e0; }
+        .social-icon { font-size: 1.5rem; margin: 0 10px; color: #ffcc80; transition: 0.3s; }
+        .social-icon:hover { transform: scale(1.1); color: #ff9800; }
+        .section-heading { color: #ff9800; font-weight: 700; }
+        .product-card-img { height: 200px; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-sun me-2"></i> 
+                MATAHARI SHOP
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link active fw-bold text-dark" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="produk.html">Katalog Produk</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">Tentang Kami</a></li> <li class="nav-item">
+                        <a class="nav-link" href="keranjang.html">
+                            <i class="fas fa-shopping-cart text-primary"></i> <span id="cart-badge" class="badge bg-danger rounded-pill">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-warning text-white ms-3 fw-bold" href="login.html">
+                            <i class="fas fa-sign-in-alt me-1"></i> Login 
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <header class="hero-section text-center">
+        <div class="container">
+            <h1 class="hero-title">Temukan Cahaya Gaya Terbaik Anda!</h1>
+            <p class="lead fw-normal text-muted mb-4">MATAHARI SHOP Pakaian Trendi, Peralatan Rumah Tangga, dan Aksesori Cantik.</p>
+            <a href="produk.html" class="btn btn-lg btn-warning text-white shadow-lg fw-bold px-5">
+                <i class="fas fa-bolt me-2"></i> Belanja Cepat Hari Ini
+            </a>
+        </div>
+    </header>
+
+    <section id="about" class="py-5 container text-center">
+        <h2 class="section-heading mb-5">Visi & Misi Kami</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-5 mb-3">
+                <div class="card border-warning card-feature h-100 shadow-sm">
+                    <div class="card-body">
+                        <h3 class="card-title text-warning"><i class="fas fa-eye me-2"></i> Visi</h3>
+                        <p class="card-text text-muted">Menjadi e-commerce terpercaya yang menyinari keseharian pelanggan dengan produk berkualitas dan pelayanan hangat.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5 mb-3">
+                <div class="card border-warning card-feature h-100 shadow-sm">
+                    <div class="card-body">
+                        <h3 class="card-title text-warning"><i class="fas fa-rocket me-2"></i> Misi</h3>
+                        <p class="card-text text-muted">Menyediakan produk trendy dengan harga terjangkau dan memberikan pengalaman belanja yang mudah dan menyenangkan.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-5 bg-light">
+        <div class="container text-center">
+            <h2 class="section-heading mb-5">Mengapa Harus Memilih Matahari Shop?</h2>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card p-3 card-feature h-100">
+                        <i class="fas fa-tags text-success fa-3x mb-3"></i>
+                        <h5 class="fw-bold">Harga Terbaik</h5>
+                        <p class="text-muted small">Kami menjamin harga yang sangat kompetitif untuk kualitas terbaik.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card p-3 card-feature h-100">
+                        <i class="fas fa-truck text-primary fa-3x mb-3"></i>
+                        <h5 class="fw-bold">Pengiriman Cepat</h5>
+                        <p class="text-muted small">Kerja sama dengan kurir terpercaya untuk pengiriman ke seluruh Indonesia.</p>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card p-3 card-feature h-100">
+                        <i class="fas fa-shield-alt text-warning fa-3x mb-3"></i>
+                        <h5 class="fw-bold">Garansi Kualitas</h5>
+                        <p class="text-muted small">Jaminan produk sesuai foto, atau uang kembali 100% (S&K berlaku).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-5 testimonial-bg">
+        <div class="container">
+            <h2 class="section-heading mb-5 text-center">Kata Pelanggan Kami</h2>
+            <div class="row justify-content-center">
+                <div class="col-md-6">
+                    <blockquote class="blockquote p-4 bg-white shadow-sm rounded border-start border-warning border-5">
+                        <p class="mb-0 fst-italic">"Pelayanannya sangat cepat! Barang sampai sesuai janji dan kualitasnya melebihi ekspektasi. Matahari Shop memang rekomendasi!"</p>
+                        <footer class="blockquote-footer mt-2">Siti N. <cite title="Source Title">Pelanggan Setia</cite></footer>
+                    </blockquote>
+                </div>
+                <div class="col-md-6">
+                    <blockquote class="blockquote p-4 bg-white shadow-sm rounded border-start border-warning border-5">
+                        <p class="mb-0 fst-italic">"Suka sekali dengan pilihan produknya, selalu up-to-date! Desain websitenya juga cerah dan mudah digunakan."</p>
+                        <footer class="blockquote-footer mt-2">Budi R. <cite title="Source Title">Pembeli Aksesori</cite></footer>
+                    </blockquote>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-dark py-4 mt-auto">
+        <div class="container text-center">
+            <h5 class="mb-3 text-white-50">Ikuti Kami</h5>
+            <div class="mb-4">
+                <a href="https://www.instagram.com/mataharistore2025?igsh=MXJzZ3g5Mjdmdml2Zw==" target="_blank" class="social-icon"><i class="fab fa-instagram"></i></a>
+                <a href="https://wa.me/qr/SUY57ANLCGB4L1" class="social-icon"><i class="fab fa-whatsapp"></i></a>
+            </div>
+            <p class="text-white-50 small">&copy; 2023 Matahari Shop . Cahaya Belanja Anda.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/script.js"></script>
+</body>
+</html>

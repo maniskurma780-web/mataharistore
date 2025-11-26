@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <title>Admin  - Matahari Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .card-stat { transition: 0.3s; border: none; color: white; }
+        .card-stat:hover { transform: translateY(-5px); }
+        .bg-gradient-orange { background: linear-gradient(45deg, #fd7e14, #ffc107); }
+        .bg-gradient-blue { background: linear-gradient(45deg, #0d6efd, #0dcaf0); }
+        .bg-gradient-green { background: linear-gradient(45deg, #198754, #20c997); }
+        /* Scroll untuk tabel jika data banyak */
+        .table-container { max-height: 400px; overflow-y: auto; }
+    </style>
+</head>
+<body class="bg-light">
+    <nav class="navbar navbar-dark bg-warning mb-4 shadow-sm sticky-top">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1 fw-bold"><i class="fas fa-sun"></i> Admin Dashboard - Matahari Shop</span>
+            <button onclick="logout()" class="btn btn-outline-light btn-sm fw-bold">Logout</button>
+        </div>
+    </nav>
+
+    <div class="container pb-5">
+        
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card card-stat bg-gradient-green shadow-sm h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1">Total Pendapatan</h6>
+                            <h3 class="fw-bold mb-0" id="totalRevenue">Rp 0</h3>
+                            <small class="text-white-50">Akumulasi semua order</small>
+                        </div>
+                        <div class="fs-1 text-white-50"><i class="fas fa-wallet"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-stat bg-gradient-orange shadow-sm h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1">Total Produk</h6>
+                            <h3 class="fw-bold mb-0" id="totalProdukCount">0</h3>
+                            <small class="text-white-50">Item aktif di toko</small>
+                        </div>
+                        <div class="fs-1 text-white-50"><i class="fas fa-box-open"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-stat bg-gradient-blue shadow-sm h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1">Total Pesanan</h6>
+                            <h3 class="fw-bold mb-0" id="totalOrderCount">0</h3>
+                            <small class="text-white-50">Transaksi tercatat</small>
+                        </div>
+                        <div class="fs-1 text-white-50"><i class="fas fa-shopping-bag"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card p-3 mb-4 shadow-sm border-warning">
+                    <h5 class="text-warning fw-bold"><i class="fas fa-plus-circle"></i> Kelola Produk</h5>
+                    <hr>
+                    <form id="productForm">
+                        <input type="hidden" id="prodId">
+                        
+                        <div class="mb-2">
+                            <label class="form-label fw-bold small">Nama Produk</label>
+                            <input type="text" id="nama" class="form-control" placeholder="Contoh: Dress Bunga" required>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label class="form-label fw-bold small">Kategori</label>
+                            <select id="kategori" class="form-select">
+                                <option value="pakaian">Pakaian</option>
+                                <option value="rumah_tangga">Rumah Tangga</option>
+                                <option value="aksesori">Aksesori</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label class="form-label fw-bold small">Harga (Rp)</label>
+                            <input type="number" id="harga" class="form-control" placeholder="150000" required>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <label class="form-label fw-bold small">Upload Foto</label>
+                            <input type="file" id="imgInput" class="form-control" accept="image/*">
+                            <input type="hidden" id="imgBase64">
+                            <div class="mt-2 text-center">
+                                <img id="imgPreview" src="" style="max-width: 80px; display: none; border: 1px solid #ddd;">
+                            </div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label fw-bold small">Deskripsi</label>
+                            <textarea id="deskripsi" class="form-control" rows="2"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-warning text-white w-100 mt-2 fw-bold">Simpan</button>
+                        <button type="button" onclick="resetForm()" class="btn btn-secondary w-100 mt-1 btn-sm">Reset</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                
+                <div class="card p-3 shadow-sm border-0 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-primary fw-bold"><i class="fas fa-clipboard-list"></i> Pesanan Masuk (Real-Time)</h5>
+                        <button onclick="clearOrders()" class="btn btn-sm btn-outline-danger">Hapus Semua Order</button>
+                    </div>
+                    <div class="table-responsive table-container">
+                        <table class="table table-bordered table-sm align-middle text-center">
+                            <thead class="table-primary">
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Pelanggan</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orderTableBody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card p-3 shadow-sm border-0">
+                    <h5 class="text-muted mb-3">Stok Produk Anda</h5>
+                    <div class="table-responsive table-container">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>Img</th>
+                                    <th>Nama</th>
+                                    <th>Harga</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminProductTable">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="assets/js/script.js"></script>
+    <script>
+        if(localStorage.getItem('role') !== 'admin') window.location.href = 'login.html';
+
+        // --- FUNGSI UTAMA: RENDER DASHBOARD ---
+        function renderDashboard() {
+            renderStatsAndOrders(); // Render Bagian Atas & Pesanan
+            renderProductTable();   // Render Tabel Produk
+        }
+
+        // 1. LOGIKA PESANAN & STATISTIK
+        function renderStatsAndOrders() {
+            const orders = loadOrders(); // Ambil data dari checkout user
+            const products = loadProducts();
+
+            // A. Hitung Statistik
+            const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+            document.getElementById('totalRevenue').innerText = rupiah(totalRevenue);
+            document.getElementById('totalOrderCount').innerText = orders.length;
+            document.getElementById('totalProdukCount').innerText = products.length;
+
+            // B. Render Tabel Pesanan
+            const tbody = document.getElementById('orderTableBody');
+            tbody.innerHTML = '';
+
+            if(orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-muted py-3">Belum ada pesanan masuk.</td></tr>';
+            } else {
+                orders.forEach((order, index) => {
+                    // Tentukan warna badge status
+                    let badgeColor = order.status === 'Lunas' ? 'bg-success' : 'bg-warning text-dark';
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><small>${order.date}</small></td>
+                            <td class="fw-bold">${order.customer}</td>
+                            <td>${rupiah(order.total)}</td>
+                            <td><span class="badge ${badgeColor}">${order.status}</span></td>
+                            <td>
+                                <button onclick="toggleStatus(${index})" class="btn btn-xs btn-primary" title="Ganti Status">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        // Fungsi Ganti Status (Pending <-> Lunas)
+        function toggleStatus(index) {
+            let orders = loadOrders();
+            if(orders[index].status === 'Menunggu Bayar') {
+                orders[index].status = 'Lunas';
+            } else {
+                orders[index].status = 'Menunggu Bayar';
+            }
+            localStorage.setItem('orders', JSON.stringify(orders));
+            renderStatsAndOrders(); // Refresh tampilan
+        }
+
+        function clearOrders() {
+            if(confirm("Hapus riwayat semua pesanan?")) {
+                localStorage.removeItem('orders');
+                renderStatsAndOrders();
+            }
+        }
+
+        // 2. LOGIKA PRODUK (CRUD) - Sama seperti sebelumnya
+        function renderProductTable() {
+            const products = loadProducts();
+            const tbody = document.getElementById('adminProductTable');
+            tbody.innerHTML = '';
+            products.forEach(p => {
+                let imgSrc = p.img ? p.img : 'https://via.placeholder.com/50';
+                tbody.innerHTML += `
+                    <tr>
+                        <td><img src="${imgSrc}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;"></td>
+                        <td>${p.nama}</td>
+                        <td>${rupiah(p.harga)}</td>
+                        <td>
+                            <button onclick="editProduct(${p.id})" class="btn btn-sm btn-info text-white py-0 px-1"><i class="fas fa-pen"></i></button>
+                            <button onclick="deleteProduct(${p.id})" class="btn btn-sm btn-danger py-0 px-1"><i class="fas fa-times"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // -- LOGIKA FORM PRODUK & GAMBAR --
+        const imgInput = document.getElementById('imgInput');
+        const imgPreview = document.getElementById('imgPreview');
+        const imgBase64 = document.getElementById('imgBase64');
+
+        imgInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 500000) { alert("File terlalu besar (Max 500KB)"); this.value = ""; return; }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imgBase64.value = e.target.result; 
+                    imgPreview.src = e.target.result;
+                    imgPreview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('productForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            let products = loadProducts();
+            const id = document.getElementById('prodId').value;
+            let currentImg = document.getElementById('imgBase64').value || "https://via.placeholder.com/400x400?text=No+Image"; 
+
+            const newProd = {
+                id: id ? parseInt(id) : Date.now(), 
+                nama: document.getElementById('nama').value,
+                kategori: document.getElementById('kategori').value,
+                harga: parseInt(document.getElementById('harga').value),
+                img: currentImg,
+                deskripsi: document.getElementById('deskripsi').value
+            };
+
+            if (id) {
+                const index = products.findIndex(p => p.id == id);
+                if (document.getElementById('imgInput').files.length === 0) newProd.img = products[index].img; 
+                products[index] = newProd;
+            } else {
+                products.push(newProd);
+            }
+            localStorage.setItem('products', JSON.stringify(products));
+            resetForm();
+            renderDashboard(); // Refresh semua
+            alert('Produk tersimpan!');
+        });
+
+        function editProduct(id) {
+            let p = loadProducts().find(p => p.id == id);
+            document.getElementById('prodId').value = p.id;
+            document.getElementById('nama').value = p.nama;
+            document.getElementById('harga').value = p.harga;
+            document.getElementById('kategori').value = p.kategori;
+            document.getElementById('deskripsi').value = p.deskripsi;
+            document.getElementById('imgBase64').value = p.img;
+            document.getElementById('imgPreview').src = p.img;
+            document.getElementById('imgPreview').style.display = 'block';
+        }
+
+        function deleteProduct(id) {
+            if(confirm('Hapus?')) {
+                let products = loadProducts().filter(p => p.id != id);
+                localStorage.setItem('products', JSON.stringify(products));
+                renderDashboard();
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('productForm').reset();
+            document.getElementById('prodId').value = '';
+            document.getElementById('imgBase64').value = '';
+            document.getElementById('imgPreview').style.display = 'none';
+        }
+        
+        function logout() { localStorage.removeItem('role'); window.location.href = 'index.html'; }
+
+        // Jalankan saat load
+        renderDashboard();
+    </script>
+</body>
+</html>
