@@ -1,141 +1,385 @@
-/**
- * File: script.js
- * Berisi fungsi-fungsi utilitas global yang digunakan di seluruh aplikasi e-commerce Qarin.Scarf
- */
-
-// --- Fungsi Global untuk Local Storage ---
-
-/**
- * Memuat daftar produk dari Local Storage.
- * Jika kosong, mengembalikan array kosong.
- * @returns {Array<Object>} Daftar produk.
- */
-function loadProducts() {
-    try {
-        const products = JSON.parse(localStorage.getItem('products'));
-        return Array.isArray(products) ? products : [];
-    } catch (e) {
-        console.error("Error loading products from Local Storage:", e);
-        return [];
-    }
-}
-window.loadProducts = loadProducts; // Daftarkan ke window agar bisa diakses
-
-/**
- * Memuat daftar pesanan dari Local Storage.
- * Jika kosong, mengembalikan array dengan data dummy.
- * @returns {Array<Object>} Daftar pesanan.
- */
-function loadOrders() {
-    try {
-        const orders = JSON.parse(localStorage.getItem('orders'));
-        // Mengembalikan dummy data jika order kosong untuk tampilan awal
-        if (!orders || orders.length === 0) {
-            return [
-                { customer: "Fatima A.", date: "2025-05-01", total: 100000, status: "Lunas", items: [{ nama: "Bella Square", qty: 2 }] },
-                { customer: "Aisyah B.", date: "2025-05-02", total: 150000, status: "Menunggu Bayar", items: [{ nama: "Aura Pashmina", qty: 1 }] }
-            ];
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Qarin.Scarf</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Palet Warna Manis (Rose Gold & Soft Pink) */
+        :root {
+            --qarin-primary: #a55a6d; /* Deep Rose */
+            --qarin-secondary: #fce4ec; /* Light Pink */
+            --qarin-dark: #8c4c5a; /* Darker Rose */
         }
-        return orders;
-    } catch (e) {
-        console.error("Error loading orders from Local Storage:", e);
-        return [];
-    }
-}
-window.loadOrders = loadOrders;
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f7;
+        }
+        .bg-qarin-dark { background-color: var(--qarin-dark) !important; }
+        .text-qarin { color: var(--qarin-primary) !important; }
 
-/**
- * Memuat keranjang belanja dari Local Storage.
- * @returns {Array<Object>} Daftar item di keranjang.
- */
-function loadCart() {
-    try {
-        const cart = JSON.parse(localStorage.getItem('cart'));
-        return Array.isArray(cart) ? cart : [];
-    } catch (e) {
-        console.error("Error loading cart from Local Storage:", e);
-        return [];
-    }
-}
-window.loadCart = loadCart;
-
-/**
- * Menyimpan data keranjang belanja ke Local Storage.
- * @param {Array<Object>} cart - Data keranjang yang akan disimpan.
- */
-function saveCart(cart) {
-    localStorage.setItem('cart', JSON.stringify(cart));
-}
-window.saveCart = saveCart;
-
-// --- Fungsi Global Format ---
-
-/**
- * Memformat angka menjadi format mata uang Rupiah.
- * @param {number} number - Angka yang akan diformat.
- * @returns {string} String dalam format Rupiah.
- */
-function rupiah(number) {
-    return new Intl.NumberFormat('id-ID', {
-        style: 'currency',
-        currency: 'IDR',
-        minimumFractionDigits: 0
-    }).format(number);
-}
-window.rupiah = rupiah;
-
-/**
- * Memperbarui angka di ikon keranjang belanja (badge).
- */
-function updateCartBadge() {
-    const cart = loadCart();
-    const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
-    const badge = document.getElementById('cart-badge');
-    if (badge) {
-        badge.innerText = totalItems;
-    }
-}
-window.updateCartBadge = updateCartBadge;
-
-// --- Fungsi Checkout Sederhana (Dipanggil dari keranjang.html) ---
-function checkout() {
-    const cart = loadCart();
-    if (cart.length === 0) {
-        // Mengganti alert
-        console.warn('Keranjang kosong, tidak bisa checkout.');
-        return;
-    }
-
-    const customerName = prompt("Masukkan Nama Lengkap Anda untuk Pesanan:");
-
-    if (customerName) {
-        // Hitung total
-        const totalAmount = cart.reduce((sum, item) => sum + (item.harga * item.qty), 0);
+        /* Card Statistik yang Manis */
+        .card-stat { 
+            transition: 0.3s; 
+            border: none; 
+            color: white; 
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        .card-stat:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .bg-gradient-qarin-primary { background: linear-gradient(45deg, var(--qarin-primary), #f06292); }
+        .bg-gradient-qarin-dark-stat { background: linear-gradient(45deg, var(--qarin-dark), #a55a6d); }
+        .bg-gradient-blue { background: linear-gradient(45deg, #42a5f5, #29b6f6); }
+        .bg-gradient-green { background: linear-gradient(45deg, #66bb6a, #43a047); }
         
-        // Buat objek order baru
-        const newOrder = {
-            customer: customerName,
-            date: new Date().toLocaleDateString('id-ID'),
-            total: totalAmount,
-            status: "Menunggu Bayar", // Status awal
-            items: cart.map(item => ({ nama: item.nama, qty: item.qty }))
-        };
+        /* Form & Table Style */
+        .card { border-radius: 15px; }
+        .table-container { max-height: 450px; overflow-y: auto; }
+        .table thead { background-color: var(--qarin-secondary); color: var(--qarin-dark); }
+        .table-primary { background-color: #f5f5f5 !important; }
+        .btn-qarin-submit {
+            background-color: var(--qarin-primary);
+            color: white;
+            border-radius: 30px;
+            transition: 0.3s;
+        }
+        .btn-qarin-submit:hover {
+            background-color: var(--qarin-dark);
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Navbar Admin yang Manis -->
+    <nav class="navbar navbar-dark bg-qarin-dark mb-5 shadow sticky-top">
+        <div class="container">
+            <span class="navbar-brand mb-0 h1 fw-bold"><i class="fas fa-crown me-2"></i> Admin Qarin.Scarf</span>
+            <button onclick="logout()" class="btn btn-outline-light btn-sm fw-bold rounded-pill">Logout <i class="fas fa-sign-out-alt"></i></button>
+        </div>
+    </nav>
 
-        // Simpan order ke Local Storage
-        const orders = loadOrders().filter(o => o.customer !== "Fatima A." && o.customer !== "Aisyah B."); // Hapus data dummy jika ada
-        orders.push(newOrder);
-        localStorage.setItem('orders', JSON.stringify(orders));
+    <div class="container pb-5">
+        
+        <div class="row mb-5">
+            <div class="col-md-4">
+                <div class="card card-stat bg-gradient-green shadow h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1 fw-light">Total Pendapatan</h6>
+                            <h3 class="fw-bold mb-0" id="totalRevenue">Rp 0</h3>
+                        </div>
+                        <div class="fs-1 text-white-50"><i class="fas fa-dollar-sign"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-stat bg-gradient-qarin-dark-stat shadow h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1 fw-light">Total Produk</h6>
+                            <h3 class="fw-bold mb-0" id="totalProdukCount">0</h3>
+                        </div>
+                        <div class="fs-1 text-white-50"><i class="fas fa-box-open"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card card-stat bg-gradient-blue shadow h-100">
+                    <div class="card-body d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-uppercase mb-1 fw-light">Total Pesanan</h6>
+                            <h3 class="fw-bold mb-0" id="totalOrderCount">0</h3>
+                        </div>
+                        <div class="fs-1 text-white-50"><i class="fas fa-shopping-bag"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        // Kosongkan keranjang
-        saveCart([]);
-        updateCartBadge();
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card p-4 mb-4 shadow-lg border-0">
+                    <h5 class="text-qarin fw-bold mb-3"><i class="fas fa-plus-circle me-2"></i> Kelola Jilbab Baru</h5>
+                    <form id="productForm">
+                        <input type="hidden" id="prodId">
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Nama Jilbab</label>
+                            <input type="text" id="nama" class="form-control" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Kategori</label>
+                            <select id="kategori" class="form-select">
+                                <option value="pashmina">Pashmina</option>
+                                <option value="segi_empat">Segi Empat</option>
+                                <option value="instan">Instan</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Harga (Rp)</label>
+                            <input type="number" id="harga" class="form-control" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Foto Produk</label>
+                            <input type="file" id="imgInput" class="form-control" accept="image/*">
+                            <input type="hidden" id="imgBase64">
+                            <div class="mt-2 text-center">
+                                <img id="imgPreview" src="" style="max-width: 100px; display: none; border: 2px solid var(--qarin-secondary); border-radius: 8px;">
+                            </div>
+                        </div>
 
-        // Notifikasi berhasil
-        alert(`Checkout Berhasil! Total: ${rupiah(totalAmount)} atas nama ${customerName}. Admin akan segera memproses pesanan Anda.`);
-        window.location.href = 'index.html'; // Kembali ke halaman utama
-    } else {
-        // Mengganti alert
-        console.log('Checkout dibatalkan atau nama pelanggan tidak dimasukkan.');
-    }
-}
-window.checkout = checkout;
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small">Deskripsi</label>
+                            <textarea id="deskripsi" class="form-control" rows="3"></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-qarin-submit w-100 mt-2 fw-bold"><i class="fas fa-save me-1"></i> Simpan Produk</button>
+                        <button type="button" onclick="resetForm()" class="btn btn-outline-secondary w-100 mt-2 btn-sm rounded-pill">Reset Formulir</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                
+                <div class="card p-4 shadow-sm border-0 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="text-qarin fw-bold"><i class="fas fa-clipboard-list me-2"></i> Daftar Pesanan Masuk</h5>
+                        <button onclick="clearOrders()" class="btn btn-sm btn-outline-danger rounded-pill"><i class="fas fa-trash"></i> Hapus Semua Order</button>
+                    </div>
+                    <div class="table-responsive table-container">
+                        <table class="table table-bordered table-sm align-middle text-center">
+                            <thead>
+                                <tr>
+                                    <th>Tanggal</th>
+                                    <th>Pelanggan</th>
+                                    <th>Total</th>
+                                    <th>Status</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="orderTableBody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card p-4 shadow-sm border-0">
+                    <h5 class="text-muted mb-3"><i class="fas fa-list-alt me-2"></i> Daftar Jilbab Aktif</h5>
+                    <div class="table-responsive table-container">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                                <tr>
+                                    <th>Foto</th>
+                                    <th>Nama Jilbab</th>
+                                    <th>Harga</th>
+                                    <th>Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminProductTable">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- PENTING: MENGUBAH PATH DARI assets/js/script.js MENJADI script.js -->
+    <script src="script.js"></script>
+    <script>
+        // Memastikan fungsi-fungsi dari script.js tersedia
+        // Karena script.js berisi fungsi global, kita bisa langsung menggunakannya.
+        
+        // ADMIN LOGIN CHECK 
+        if(localStorage.getItem('role') !== 'admin') window.location.href = 'login.html';
+
+        // --- FUNGSI UTAMA ADMIN ---
+        
+        function renderDashboard() {
+            console.log("Rendering Dashboard...");
+            renderStatsAndOrders(); 
+            renderProductTable();   
+        }
+
+        function renderStatsAndOrders() {
+            const orders = loadOrders(); 
+            const products = loadProducts();
+
+            const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+            document.getElementById('totalRevenue').innerText = rupiah(totalRevenue);
+            document.getElementById('totalOrderCount').innerText = orders.length;
+            document.getElementById('totalProdukCount').innerText = products.length;
+
+            const tbody = document.getElementById('orderTableBody');
+            tbody.innerHTML = '';
+
+            if(orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-muted py-3">Belum ada pesanan masuk.</td></tr>';
+            } else {
+                orders.forEach((order, index) => {
+                    let badgeColor = order.status === 'Lunas' ? 'bg-success' : 'bg-warning text-dark';
+                    
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><small>${order.date}</small></td>
+                            <td class="fw-bold">${order.customer}</td>
+                            <td>${rupiah(order.total)}</td>
+                            <td><span class="badge ${badgeColor}">${order.status}</span></td>
+                            <td>
+                                <button onclick="toggleStatus(${index})" class="btn btn-xs btn-primary py-0 px-1" title="Ganti Status">
+                                    <i class="fas fa-sync-alt"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function toggleStatus(index) {
+            let orders = loadOrders();
+            if(orders[index].status === 'Menunggu Bayar') {
+                orders[index].status = 'Lunas';
+            } else {
+                orders[index].status = 'Menunggu Bayar';
+            }
+            localStorage.setItem('orders', JSON.stringify(orders));
+            renderStatsAndOrders(); 
+        }
+
+        function clearOrders() {
+            // Mengganti confirm() dengan alert untuk kepatuhan, user harus tahu untuk mengosongkan LocalStorage secara manual
+            // Gunakan custom modal jika ingin implementasi UI konfirmasi
+            console.warn("Menghapus riwayat pesanan.");
+            localStorage.removeItem('orders');
+            renderStatsAndOrders();
+        }
+
+        function renderProductTable() {
+            const products = loadProducts();
+            const tbody = document.getElementById('adminProductTable');
+            tbody.innerHTML = '';
+            
+            if (products.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-muted py-3">Belum ada produk. Silakan tambahkan.</td></tr>';
+            } else {
+                products.forEach(p => {
+                    let imgSrc = p.img ? p.img : 'https://via.placeholder.com/50';
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><img src="${imgSrc}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 8px;"></td>
+                            <td>${p.nama}</td>
+                            <td class="text-qarin">${rupiah(p.harga)}</td>
+                            <td>
+                                <button onclick="editProduct(${p.id})" class="btn btn-sm btn-info text-white py-0 px-1 rounded-circle"><i class="fas fa-pen"></i></button>
+                                <button onclick="deleteProduct(${p.id})" class="btn btn-sm btn-danger py-0 px-1 rounded-circle"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        // --- Logika Form Produk (Dengan Debugging) ---
+        const imgInput = document.getElementById('imgInput');
+        const imgPreview = document.getElementById('imgPreview');
+        const imgBase64 = document.getElementById('imgBase64');
+
+        imgInput.addEventListener('change', function(event) {
+            console.log("File dipilih.");
+            const file = event.target.files[0];
+            if (file) {
+                if (file.size > 500000) { console.error("File terlalu besar (Max 500KB)"); this.value = ""; return; }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imgBase64.value = e.target.result; 
+                    imgPreview.src = e.target.result;
+                    imgPreview.style.display = 'block';
+                    console.log("Gambar berhasil diubah ke Base64.");
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('productForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            console.log("--- Formulir Disubmit! Proses Penyimpanan Dimulai ---");
+            
+            let products = loadProducts();
+            const id = document.getElementById('prodId').value;
+            let currentImg = document.getElementById('imgBase64').value || "https://placehold.co/400x400/a55a6d/ffffff?text=Qarin.Scarf"; 
+
+            const newProd = {
+                id: id ? parseInt(id) : Date.now(), 
+                nama: document.getElementById('nama').value,
+                kategori: document.getElementById('kategori').value,
+                harga: parseInt(document.getElementById('harga').value),
+                img: currentImg,
+                deskripsi: document.getElementById('deskripsi').value
+            };
+
+            if (id) {
+                console.log(`Mode Edit: ID ${id}`);
+                const index = products.findIndex(p => p.id == id);
+                if (document.getElementById('imgInput').files.length === 0) newProd.img = products[index].img; 
+                products[index] = newProd;
+            } else {
+                console.log(`Mode Tambah Baru: ID ${newProd.id}`);
+                products.push(newProd);
+            }
+
+            // --- LOKASI KRITIS: MENYIMPAN DAN MERENDER ULANG ---
+            localStorage.setItem('products', JSON.stringify(products));
+            console.log("Produk Berhasil Disimpan ke Local Storage.");
+            
+            resetForm();
+            renderDashboard(); // << PASTIKAN PEMANGGILAN INI ADA
+            console.log("--- Produk Baru Telah Dirender. ---");
+            // Mengganti alert dengan console.log
+            console.log('Notifikasi: Produk tersimpan!'); 
+        });
+
+        function editProduct(id) {
+            let p = loadProducts().find(p => p.id == id);
+            document.getElementById('prodId').value = p.id;
+            document.getElementById('nama').value = p.nama;
+            document.getElementById('harga').value = p.harga;
+            document.getElementById('kategori').value = p.kategori;
+            document.getElementById('deskripsi').value = p.deskripsi;
+            document.getElementById('imgBase64').value = p.img;
+            document.getElementById('imgPreview').src = p.img;
+            document.getElementById('imgPreview').style.display = 'block';
+        }
+
+        function deleteProduct(id) {
+            // Mengganti confirm() dengan console.log/alert
+            console.warn(`Menghapus produk ID: ${id}`);
+            let products = loadProducts().filter(p => p.id != id);
+            localStorage.setItem('products', JSON.stringify(products));
+            renderDashboard();
+            
+        }
+
+        function resetForm() {
+            document.getElementById('productForm').reset();
+            document.getElementById('prodId').value = '';
+            document.getElementById('imgBase64').value = '';
+            document.getElementById('imgPreview').style.display = 'none';
+        }
+        
+        function logout() { localStorage.removeItem('role'); window.location.href = 'index.html'; }
+
+        renderDashboard(); // Panggil pertama kali saat halaman dimuat
+    </script>
+</body>
+</html>
+
+Saya telah memperbarui `admin.html`. Sekarang, file `script.js` yang berada di direktori yang sama (tanpa folder `assets/js/`) akan terhubung dengan benar, menyelesaikan masalah koneksi file Anda.
