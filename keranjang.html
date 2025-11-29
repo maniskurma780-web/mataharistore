@@ -1,94 +1,158 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <title>Keranjang - Matahari Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> </head>
-<body>
-    <nav class="navbar navbar-light bg-white shadow-sm">
-        <div class="container">
-            <a class="navbar-brand fw-bold text-warning" href="index.html"> < Kembali Belanja</a>
-        </div>
-    </nav>
+/**
+ * File: script.js
+ * Berisi fungsi-fungsi utilitas global yang digunakan di seluruh aplikasi e-commerce Qarin.Scarf
+ */
 
-    <div class="container py-5">
-        <h2 class="mb-4">Keranjang Belanja Anda</h2>
-        <div class="row">
-            <div class="col-md-8">
-                <table class="table">
-                    <thead>
-                        <tr><th>Produk</th><th>Harga</th><th>Qty</th><th>Total</th></tr>
-                    </thead>
-                    <tbody id="cartTable"></tbody>
-                </table>
-            </div>
-            <div class="col-md-4">
-                <div class="card p-3 bg-light shadow-sm">
-                    <h4>Ringkasan Pesanan</h4>
-                    <hr>
-                    <div class="d-flex justify-content-between">
-                        <span>Total Bayar:</span>
-                        <strong class="text-warning fs-4" id="grandTotal">Rp 0</strong>
-                    </div>
-                    <button onclick="processCheckout()" class="btn btn-success w-100 mt-3 fw-bold">Checkout Sekarang</button>
-                </div>
-            </div>
-        </div>
-    </div>
+// --- Fungsi Global untuk Local Storage ---
 
-    <script src="script.js"></script>
-    <script>
-        let currentTotal = 0;
+/**
+ * Memuat daftar produk dari Local Storage.
+ * Jika kosong, mengembalikan array kosong.
+ * @returns {Array<Object>} Daftar produk.
+ */
+function loadProducts() {
+    try {
+        const products = JSON.parse(localStorage.getItem('products'));
+        return Array.isArray(products) ? products : [];
+    } catch (e) {
+        console.error("Error loading products from Local Storage:", e);
+        return [];
+    }
+}
+window.loadProducts = loadProducts; // Daftarkan ke window agar bisa diakses
 
-        function renderCart() {
-            let cart = JSON.parse(localStorage.getItem('cart')) || [];
-            const tbody = document.getElementById('cartTable');
-            tbody.innerHTML = '';
-            currentTotal = 0;
-
-            if(cart.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">Keranjang kosong. Yuk belanja dulu!</td></tr>';
-            }
-
-            cart.forEach(item => {
-                let total = item.harga * item.qty;
-                currentTotal += total;
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${item.nama}</td>
-                        <td>${rupiah(item.harga)}</td>
-                        <td>${item.qty}</td>
-                        <td>${rupiah(total)}</td>
-                    </tr>
-                `;
-            });
-            document.getElementById('grandTotal').innerText = rupiah(currentTotal);
+/**
+ * Memuat daftar pesanan dari Local Storage.
+ * Jika kosong, mengembalikan array dengan data dummy.
+ * @returns {Array<Object>} Daftar pesanan.
+ */
+function loadOrders() {
+    try {
+        const orders = JSON.parse(localStorage.getItem('orders'));
+        // Mengembalikan dummy data jika order kosong untuk tampilan awal
+        if (!orders || orders.length === 0) {
+            return [
+                { customer: "Fatima A.", date: "2025-05-01", total: 100000, status: "Lunas", items: [{ nama: "Bella Square", qty: 2 }] },
+                { customer: "Aisyah B.", date: "2025-05-02", total: 150000, status: "Menunggu Bayar", items: [{ nama: "Aura Pashmina", qty: 1 }] }
+            ];
         }
+        return orders;
+    } catch (e) {
+        console.error("Error loading orders from Local Storage:", e);
+        return [];
+    }
+}
+window.loadOrders = loadOrders;
 
-        function processCheckout() {
-            let cart = JSON.parse(localStorage.getItem('cart')) || [];
-            if(cart.length === 0) {
-                alert("Keranjang kosong!");
-                return;
+/**
+ * Memuat keranjang belanja dari Local Storage.
+ * @returns {Array<Object>} Daftar item di keranjang.
+ */
+function loadCart() {
+    try {
+        const cart = JSON.parse(localStorage.getItem('cart'));
+        return Array.isArray(cart) ? cart : [];
+    } catch (e) {
+        console.error("Error loading cart from Local Storage:", e);
+        return [];
+    }
+}
+window.loadCart = loadCart;
+
+/**
+ * Menyimpan data keranjang belanja ke Local Storage.
+ * @param {Array<Object>} cart - Data keranjang yang akan disimpan.
+ */
+function saveCart(cart) {
+    localStorage.setItem('cart', JSON.stringify(cart));
+}
+window.saveCart = saveCart;
+
+// --- Fungsi Global Format ---
+
+/**
+ * Memformat angka menjadi format mata uang Rupiah.
+ * @param {number} number - Angka yang akan diformat.
+ * @returns {string} String dalam format Rupiah.
+ */
+function rupiah(number) {
+    return new Intl.NumberFormat('id-ID', {
+        style: 'currency',
+        currency: 'IDR',
+        minimumFractionDigits: 0
+    }).format(number);
+}
+window.rupiah = rupiah;
+
+/**
+ * Memperbarui angka di ikon keranjang belanja (badge).
+ */
+function updateCartBadge() {
+    const cart = loadCart();
+    const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
+    const badge = document.getElementById('cart-badge');
+    if (badge) {
+        badge.innerText = totalItems;
+    }
+}
+window.updateCartBadge = updateCartBadge;
+
+// --- Fungsi Checkout Sederhana (Dipanggil dari keranjang.html) ---
+function checkout() {
+    const cart = loadCart();
+    const totalAmount = cart.reduce((sum, item) => sum + (item.harga * item.qty), 0);
+
+    if (cart.length === 0) {
+        // Mengganti alert dengan Swal
+        Swal.fire('Keranjang Kosong!', 'Tambahkan produk ke keranjang untuk melanjutkan.', 'warning');
+        return;
+    }
+
+    // Mengganti prompt() dengan Swal.fire input untuk mengambil nama pelanggan
+    Swal.fire({
+        title: 'Konfirmasi Pesanan',
+        html: 'Total yang harus dibayar: <b>' + rupiah(totalAmount) + '</b><br><br>Masukkan Nama Lengkap Anda untuk label pengiriman:',
+        input: 'text',
+        inputPlaceholder: 'Nama Lengkap Anda...',
+        showCancelButton: true,
+        confirmButtonText: 'Proses Pesanan',
+        cancelButtonText: 'Batal',
+        preConfirm: (customerName) => {
+            if (!customerName || customerName.trim() === '') {
+                Swal.showValidationMessage('Nama lengkap harus diisi!');
+                return false;
             }
-
-            // Meminta Nama Pelanggan agar Admin tahu siapa yang beli
-            const nama = prompt("Masukkan Nama Anda untuk label pengiriman:");
+            return customerName;
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const customerName = result.value;
             
-            if(nama) {
-                // Simpan ke sistem Admin
-                saveOrder(nama, currentTotal, cart);
-                
-                // Bersihkan keranjang
-                localStorage.removeItem('cart');
-                
-                alert("Pesanan Berhasil! Admin telah menerima pesanan Anda. Data masuk ke Dashboard.");
-                window.location.href = 'index.html';
-            }
+            // Buat objek order baru
+            const newOrder = {
+                customer: customerName,
+                date: new Date().toLocaleDateString('id-ID'),
+                total: totalAmount,
+                status: "Menunggu Bayar", // Status awal
+                items: cart.map(item => ({ nama: item.nama, qty: item.qty }))
+            };
+
+            // Simpan order ke Local Storage
+            const orders = loadOrders().filter(o => o.customer !== "Fatima A." && o.customer !== "Aisyah B."); // Hapus data dummy jika ada
+            orders.push(newOrder);
+            localStorage.setItem('orders', JSON.stringify(orders));
+
+            // Kosongkan keranjang
+            saveCart([]);
+            updateCartBadge();
+
+            // Notifikasi berhasil
+            Swal.fire('Pesanan Berhasil!', `Pesanan atas nama ${customerName} (Total: ${rupiah(totalAmount)}) telah dikirim ke Dashboard Admin.`, 'success').then(() => {
+                window.location.href = 'index.html'; // Kembali ke halaman utama
+            });
+        } else {
+            console.log('Checkout dibatalkan.');
         }
-
-        renderCart();
-    </script>
-</body>
-
-</html>
+    });
+}
+window.checkout = checkout;
